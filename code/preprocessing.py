@@ -1,7 +1,25 @@
 import pandas as pd 
 import numpy as np
+import pyproj
 
+# Correct utm-zone: {'init': 'epsg:32618'}
+#df_rides.to_crs()
 
-def myfunction(df): 
-    df['col3'] = df.col1+df.col0
-    return df
+def convert_projection_to_utm(df,col_x_source,col_y_source,
+                              col_x_dest = 'x_utm', col_y_dest = 'y_utm',
+                              projection_source=pyproj.Proj("+init=EPSG:4326"),
+                              projection_dest=pyproj.Proj("+init=EPSG:32618")):
+    x,y = pyproj.transform(projection_source, projection_dest,df[col_x_source].values,df[col_y_source].values)
+    return df.assign(**{col_x_dest:x,col_y_dest:y})
+
+def calc_distance(df,col_x1_utm,col_x2_utm,col_y1_utm,col_y2_utm,type_='beeline'):
+    if type_ =='beeline':
+        distance = np.sqrt((df[col_x1_utm]-df[col_x2_utm])**2+(df[col_y1_utm]-df[col_y2_utm])**2)
+    elif type_ =='Mannhattan':
+        distance = np.abs((df[col_x1_utm]-df[col_x2_utm]))+np.abs((df[col_y1_utm]-df[col_y2_utm]))
+    return df.assign(*{f"distance_{type_}": distance})
+
+df_rides = convert_projection_to_utm(df_rides,col_x_source='pickup_longitude',col_y_source='pickup_latitude',col_x_dest="pickup_x_utm",col_y_dest='pickup_y_utm')
+df_rides = convert_projection_to_utm(df_rides,col_x_source='dropoff_longitude',col_y_source='dropoff_latitude',col_x_dest="dropoff_x_utm",col_y_dest='dropoff_y_utm')
+df_rides.head()
+
