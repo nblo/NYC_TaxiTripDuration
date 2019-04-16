@@ -18,3 +18,7 @@ def calc_distance(df, col_x1_utm, col_x2_utm, col_y1_utm, col_y2_utm,type_='beel
         distance = np.abs((df[col_x1_utm]-df[col_x2_utm]))+np.abs((df[col_y1_utm]-df[col_y2_utm]))
     return df.assign(*{f"distance_{type_}": distance})
 
+
+def test_1():
+    pass
+
